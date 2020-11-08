@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -9,6 +10,10 @@ import (
 
 func GetTargets(rules [][]string) []string {
 	// Target names are the first element in each slice in rules
+	if len(rules) == 0 {
+		// No rules were found
+		return []string{""}
+	}
 	var targets []string
 	for _, rule := range rules {
 		targets = append(targets, rule[0])
@@ -17,7 +22,10 @@ func GetTargets(rules [][]string) []string {
 }
 
 func GetDependency(rules [][]string, index int) string {
-	return rules[index][1]
+	if index < len(rules) {
+		return rules[index][1]
+	}
+	return ""
 }
 
 func Render(content *ParsedContent) {
@@ -34,6 +42,10 @@ func Render(content *ParsedContent) {
 	dependenciesWidget := widgets.NewParagraph()
 	dependenciesWidget.Title = "Dependencies"
 
+	contentWidget := widgets.NewParagraph()
+	contentWidget.Title = content.filePath
+	contentWidget.Text = strings.ReplaceAll(strings.Join(content.content, "\n"), "\t", strings.Repeat(" ", 4))
+
 	grid := ui.NewGrid()
 	termWidth, termHeight := ui.TerminalDimensions()
 	grid.SetRect(0, 0, termWidth, termHeight)
@@ -42,6 +54,7 @@ func Render(content *ParsedContent) {
 			ui.NewRow(0.8, targetsWidget),
 			ui.NewRow(0.2, dependenciesWidget),
 		),
+		ui.NewCol(0.8, contentWidget),
 	)
 	ui.Render(grid)
 
@@ -64,7 +77,6 @@ func Render(content *ParsedContent) {
 		case "<C-b>":
 			targetsWidget.ScrollPageUp()
 		}
-
 		dependenciesWidget.Text = GetDependency(content.rules, targetsWidget.SelectedRow)
 		ui.Render(grid)
 	}
