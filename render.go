@@ -22,17 +22,25 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	for _, rule := range rules {
 		targets = append(targets, rule.target)
 	}
-	return &Target{index: index, numberOfRules: numberOfRules, name: targets[0], targets: targets}
+	var name string
+	if len(targets) > 0 {
+		name = targets[0]
+	}
+	return &Target{index: index, numberOfRules: numberOfRules, name: name, targets: targets}
 }
 
 func (target *Target) Down(delta int) {
-	target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
-	target.name = target.targets[target.index]
+	if target.numberOfRules > 0 {
+		target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
+		target.name = target.targets[target.index]
+	}
 }
 
 func (target *Target) Up(delta int) {
-	target.index = int(math.Max(float64(0), float64(target.index-delta)))
-	target.name = target.targets[target.index]
+	if target.numberOfRules > 0 {
+		target.index = int(math.Max(float64(0), float64(target.index-delta)))
+		target.name = target.targets[target.index]
+	}
 }
 
 func getTargets(rules []Rule) []string {
@@ -137,7 +145,7 @@ func Render(content *ParsedContent) {
 		ui.Render(grid)
 	}
 	ui.Close()
-	if run {
+	if run && target.name != "" {
 		fmt.Println("make", target.name)
 		output, err := exec.Command("make", target.name).Output()
 		if err != nil {
