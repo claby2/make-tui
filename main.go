@@ -24,11 +24,26 @@ func getFileContent(filePath string) []string {
 }
 
 func main() {
+	var filePath string
 	if len(os.Args[1:]) == 0 {
-		log.Fatal("no input file")
-		os.Exit(1)
+		// Attempt to find makefile in current directory
+		defaultMakefileNames := []string{"GNUmakefile", "makefile", "Makefile"}
+		foundFile := false
+		for _, name := range defaultMakefileNames {
+			if _, err := os.Stat(name); os.IsNotExist(err) == false {
+				// File exists
+				filePath = name
+				foundFile = true
+				break
+			}
+		}
+		if !foundFile {
+			log.Fatal("no makefile found")
+			os.Exit(1)
+		}
+	} else {
+		filePath = os.Args[1]
 	}
-	filePath := os.Args[1]
 
 	content := NewParsedContent(filePath, getFileContent(filePath))
 	content.Parse()

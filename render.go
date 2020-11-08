@@ -116,12 +116,13 @@ func Render(content *ParsedContent) {
 	ui.Render(grid)
 
 	uiEvents := ui.PollEvents()
-	for {
+	quit := false
+	run := false
+	for !quit && !run {
 		e := <-uiEvents
-		run := false
 		switch e.ID {
 		case "q", "<C-c>":
-			return
+			quit = true
 		case "j", "<Down>":
 			targetsWidget.ScrollDown()
 			target.Down(1)
@@ -131,18 +132,17 @@ func Render(content *ParsedContent) {
 		case "<Enter>":
 			run = true
 		}
-		if run {
-			break
-		}
 		dependencyWidget.Text = getDependency(content.rules, target.index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 		ui.Render(grid)
 	}
 	ui.Close()
-	fmt.Println("make", target.name)
-	output, err := exec.Command("make", target.name).Output()
-	if err != nil {
-		log.Fatal(err)
+	if run {
+		fmt.Println("make", target.name)
+		output, err := exec.Command("make", target.name).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(output))
 	}
-	fmt.Println(string(output))
 }
