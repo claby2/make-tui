@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math"
+	"os/exec"
 	"strings"
 
 	ui "github.com/gizak/termui/v3"
@@ -10,20 +12,27 @@ import (
 )
 
 type Target struct {
-	index         int
-	numberOfRules int
+	index, numberOfRules int
+	name                 string
+	targets              []string
 }
 
-func NewTarget(index, numberOfRules int) *Target {
-	return &Target{index: index, numberOfRules: numberOfRules}
+func NewTarget(index, numberOfRules int, rules []Rule) *Target {
+	var targets []string
+	for _, rule := range rules {
+		targets = append(targets, rule.target)
+	}
+	return &Target{index: index, numberOfRules: numberOfRules, name: targets[0], targets: targets}
 }
 
 func (target *Target) Down(delta int) {
 	target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
+	target.name = target.targets[target.index]
 }
 
 func (target *Target) Up(delta int) {
 	target.index = int(math.Max(float64(0), float64(target.index-delta)))
+	target.name = target.targets[target.index]
 }
 
 func getTargets(rules []Rule) []string {
@@ -77,10 +86,9 @@ func Render(content *ParsedContent) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
-	defer ui.Close()
 
 	content.content = replaceTabs(content.content)
-	target := NewTarget(0, len(content.rules))
+	target := NewTarget(0, len(content.rules), content.rules)
 	termWidth, termHeight := ui.TerminalDimensions()
 
 	targetsWidget := widgets.NewList()
@@ -110,6 +118,7 @@ func Render(content *ParsedContent) {
 	uiEvents := ui.PollEvents()
 	for {
 		e := <-uiEvents
+		run := false
 		switch e.ID {
 		case "q", "<C-c>":
 			return
@@ -119,9 +128,21 @@ func Render(content *ParsedContent) {
 		case "k", "<Up>":
 			targetsWidget.ScrollUp()
 			target.Up(1)
+		case "<Enter>":
+			run = true
+		}
+		if run {
+			break
 		}
 		dependencyWidget.Text = getDependency(content.rules, target.index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 		ui.Render(grid)
 	}
+	ui.Close()
+	fmt.Println("make", target.name)
+	output, err := exec.Command("make", target.name).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(output))
 }
