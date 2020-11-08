@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func getContent(filePath string) []string {
+func getFileContent(filePath string) []string {
 	var fileContent []string
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 	}
 	filePath := os.Args[1]
 
-	content := NewParsedContent(filePath, getContent(filePath))
+	content := NewParsedContent(filePath, getFileContent(filePath))
 	content.Parse()
 
 	Render(content)

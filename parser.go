@@ -8,10 +8,11 @@ import (
 type Rule struct {
 	target, dependencies string
 	commands             []string
+	lineNumber           int
 }
 
-func NewRule(target, dependencies string, commands []string) *Rule {
-	return &Rule{target: target, dependencies: dependencies, commands: commands}
+func NewRule(target, dependencies string, commands []string, lineNumber int) *Rule {
+	return &Rule{target: target, dependencies: dependencies, commands: commands, lineNumber: lineNumber}
 }
 
 type ParsedContent struct {
@@ -29,7 +30,7 @@ func (parsedContent *ParsedContent) Parse() {
 	inTarget := false
 	multilineCommentRegexp := regexp.MustCompile(`^.*#.*\\$`)
 	ruleRegexp := regexp.MustCompile(`^([^:\s]+)\s*:\s*([^=].*)?$`)
-	for _, line := range parsedContent.content {
+	for lineNumber, line := range parsedContent.content {
 		// Handle multiline comments
 		if inMultilineComment {
 			inTarget = false
@@ -57,7 +58,7 @@ func (parsedContent *ParsedContent) Parse() {
 		ruleSubmatch := ruleRegexp.FindStringSubmatch(line)
 		if ruleSubmatch != nil {
 			// Match has been found
-			newRule := NewRule(ruleSubmatch[1], ruleSubmatch[2], []string{})
+			newRule := NewRule(ruleSubmatch[1], ruleSubmatch[2], []string{}, lineNumber)
 			parsedContent.rules = append(parsedContent.rules, *newRule)
 			inTarget = true
 		}

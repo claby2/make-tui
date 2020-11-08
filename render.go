@@ -2,13 +2,31 @@ package main
 
 import (
 	"log"
+	"math"
 	"strings"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
-func GetTargets(rules []Rule) []string {
+type Target struct {
+	index         int
+	numberOfRules int
+}
+
+func NewTarget(index, numberOfRules int) *Target {
+	return &Target{index: index, numberOfRules: numberOfRules}
+}
+
+func (target *Target) Down(delta int) {
+	target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
+}
+
+func (target *Target) Up(delta int) {
+	target.index = int(math.Max(float64(0), float64(target.index-delta)))
+}
+
+func getTargets(rules []Rule) []string {
 	// Target names are the first element in each slice in rules
 	if len(rules) == 0 {
 		// No rules were found
@@ -21,11 +39,38 @@ func GetTargets(rules []Rule) []string {
 	return targets
 }
 
-func GetDependency(rules []Rule, index int) string {
+func getDependency(rules []Rule, index int) string {
 	if index < len(rules) {
 		return rules[index].dependencies
 	}
 	return ""
+}
+
+func getHighlightedContent(content []string, rules []Rule, termHeight, index int) string {
+	contentCopy := append([]string(nil), content...)
+	firstLine := 0
+	if index < len(rules) {
+		lineNumber := rules[index].lineNumber
+		numberOfCommands := len(rules[index].commands)
+
+		if len(contentCopy) > termHeight-1 {
+			firstLine = lineNumber
+		}
+
+		// Highlight rule (including commands)
+		for i := lineNumber; i <= lineNumber+numberOfCommands; i++ {
+			contentCopy[i] = "[" + contentCopy[i] + "](fg:yellow,mod:bold)"
+		}
+	}
+	return strings.ReplaceAll(strings.Join(contentCopy[firstLine:], "\n"), "\t", strings.Repeat(" ", 4))
+}
+
+func replaceTabs(content []string) []string {
+	contentCopy := append([]string(nil), content...)
+	for i, line := range contentCopy {
+		contentCopy[i] = strings.ReplaceAll(line, "\t", strings.Repeat(" ", 4))
+	}
+	return contentCopy
 }
 
 func Render(content *ParsedContent) {
@@ -34,25 +79,29 @@ func Render(content *ParsedContent) {
 	}
 	defer ui.Close()
 
+	content.content = replaceTabs(content.content)
+	target := NewTarget(0, len(content.rules))
+	termWidth, termHeight := ui.TerminalDimensions()
+
 	targetsWidget := widgets.NewList()
 	targetsWidget.Title = "Targets"
-	targetsWidget.Rows = GetTargets(content.rules)
+	targetsWidget.Rows = getTargets(content.rules)
 	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorYellow)
 
-	dependenciesWidget := widgets.NewParagraph()
-	dependenciesWidget.Title = "Dependencies"
+	dependencyWidget := widgets.NewParagraph()
+	dependencyWidget.Title = "Dependencies"
+	dependencyWidget.Text = getDependency(content.rules, target.index)
 
 	contentWidget := widgets.NewParagraph()
 	contentWidget.Title = content.filePath
-	contentWidget.Text = strings.ReplaceAll(strings.Join(content.content, "\n"), "\t", strings.Repeat(" ", 4))
+	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 
 	grid := ui.NewGrid()
-	termWidth, termHeight := ui.TerminalDimensions()
 	grid.SetRect(0, 0, termWidth, termHeight)
 	grid.Set(
 		ui.NewCol(0.2,
 			ui.NewRow(0.8, targetsWidget),
-			ui.NewRow(0.2, dependenciesWidget),
+			ui.NewRow(0.2, dependencyWidget),
 		),
 		ui.NewCol(0.8, contentWidget),
 	)
@@ -66,18 +115,13 @@ func Render(content *ParsedContent) {
 			return
 		case "j", "<Down>":
 			targetsWidget.ScrollDown()
+			target.Down(1)
 		case "k", "<Up>":
 			targetsWidget.ScrollUp()
-		case "<C-d>":
-			targetsWidget.ScrollHalfPageDown()
-		case "<C-u>":
-			targetsWidget.ScrollHalfPageUp()
-		case "<C-f>":
-			targetsWidget.ScrollPageDown()
-		case "<C-b>":
-			targetsWidget.ScrollPageUp()
+			target.Up(1)
 		}
-		dependenciesWidget.Text = GetDependency(content.rules, targetsWidget.SelectedRow)
+		dependencyWidget.Text = getDependency(content.rules, target.index)
+		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 		ui.Render(grid)
 	}
 }

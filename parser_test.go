@@ -7,6 +7,7 @@ import (
 func isRuleEqual(ruleA, ruleB Rule) bool {
 	if ruleA.target != ruleB.target ||
 		ruleA.dependencies != ruleB.dependencies ||
+		ruleA.lineNumber != ruleB.lineNumber ||
 		(ruleA.commands == nil) != (ruleB.commands == nil) ||
 		len(ruleA.commands) != len(ruleB.commands) {
 		return false
@@ -44,8 +45,8 @@ func TestParserNoDependencies(t *testing.T) {
 		"target_2:",
 	}
 	expected := []Rule{
-		{"target_1", "", []string{}},
-		{"target_2", "", []string{}},
+		{"target_1", "", []string{}, 0},
+		{"target_2", "", []string{}, 1},
 	}
 	assertParsed(t, fileContent, expected)
 }
@@ -64,8 +65,8 @@ func TestParserWithCommands(t *testing.T) {
 		"\tnot_command",
 	}
 	expected := []Rule{
-		{"target_1", "dependencies_1", []string{"command_1", "command_2", "", "command_3"}},
-		{"target_2", "", []string{}},
+		{"target_1", "dependencies_1", []string{"command_1", "command_2", "", "command_3"}, 0},
+		{"target_2", "", []string{}, 6},
 	}
 	assertParsed(t, fileContent, expected)
 }
@@ -77,7 +78,7 @@ func TestParserComments(t *testing.T) {
 		"target_3: dependencies_3 # comment",
 	}
 	expected := []Rule{
-		{"target_3", "dependencies_3", []string{}},
+		{"target_3", "dependencies_3", []string{}, 2},
 	}
 	assertParsed(t, fileContent, expected)
 }
@@ -87,7 +88,7 @@ func TestParserIgnoreCommentInQuotes(t *testing.T) {
 		"target_1: dependencies_1 \"# in quotes\"",
 	}
 	expected := []Rule{
-		{"target_1", "dependencies_1 \"# in quotes\"", []string{}},
+		{"target_1", "dependencies_1 \"# in quotes\"", []string{}, 0},
 	}
 	assertParsed(t, fileContent, expected)
 }
@@ -102,8 +103,8 @@ func TestParserMultilineComments(t *testing.T) {
 		"target_5: dependencies_5",
 	}
 	expected := []Rule{
-		{"target_1", "dependencies_1", []string{}},
-		{"target_4", "dependencies_4", []string{""}},
+		{"target_1", "dependencies_1", []string{}, 0},
+		{"target_4", "dependencies_4", []string{""}, 3},
 	}
 	assertParsed(t, fileContent, expected)
 }
