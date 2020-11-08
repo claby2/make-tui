@@ -8,7 +8,7 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-func GetTargets(rules [][]string) []string {
+func GetTargets(rules []Rule) []string {
 	// Target names are the first element in each slice in rules
 	if len(rules) == 0 {
 		// No rules were found
@@ -16,14 +16,14 @@ func GetTargets(rules [][]string) []string {
 	}
 	var targets []string
 	for _, rule := range rules {
-		targets = append(targets, rule[0])
+		targets = append(targets, rule.target)
 	}
 	return targets
 }
 
-func GetDependency(rules [][]string, index int) string {
+func GetDependency(rules []Rule, index int) string {
 	if index < len(rules) {
-		return rules[index][1]
+		return rules[index].dependencies
 	}
 	return ""
 }

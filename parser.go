@@ -5,22 +5,34 @@ import (
 	"strings"
 )
 
+type Rule struct {
+	target, dependencies string
+	commands             []string
+}
+
+func NewRule(target, dependencies string, commands []string) *Rule {
+	return &Rule{target: target, dependencies: dependencies, commands: commands}
+}
+
 type ParsedContent struct {
 	filePath string
 	content  []string
-	rules    [][]string
+	rules    []Rule
 }
 
-func NewParsedContent(newFilePath string, fileContent []string) *ParsedContent {
-	return &ParsedContent{filePath: newFilePath, content: fileContent, rules: [][]string{}}
+func NewParsedContent(filePath string, content []string) *ParsedContent {
+	return &ParsedContent{filePath: filePath, content: content, rules: []Rule{}}
 }
 
 func (parsedContent *ParsedContent) Parse() {
 	inMultilineComment := false
+	inTarget := false
 	multilineCommentRegexp := regexp.MustCompile(`^.*#.*\\$`)
 	ruleRegexp := regexp.MustCompile(`^([^:\s]+)\s*:\s*([^=].*)?$`)
 	for _, line := range parsedContent.content {
+		// Handle multiline comments
 		if inMultilineComment {
+			inTarget = false
 			inMultilineComment = line[len(line)-1:] == "\\"
 			// If currently in multiline comment, the entire line is commented
 			continue
@@ -29,11 +41,25 @@ func (parsedContent *ParsedContent) Parse() {
 			multilineMatch := multilineCommentRegexp.MatchString(line)
 			inMultilineComment = multilineMatch
 		}
+
 		line := stripComments(line)
+
+		// Handle rule commands
+		if inTarget && (len(line) == 0 || line[0] == '\t') {
+			// Current line is a command
+			ruleIndex := len(parsedContent.rules) - 1
+			parsedContent.rules[ruleIndex].commands = append(parsedContent.rules[ruleIndex].commands, strings.TrimSpace(line))
+			continue
+		} else if inTarget {
+			inTarget = false
+		}
+
 		ruleSubmatch := ruleRegexp.FindStringSubmatch(line)
 		if ruleSubmatch != nil {
 			// Match has been found
-			parsedContent.rules = append(parsedContent.rules, ruleSubmatch[1:])
+			newRule := NewRule(ruleSubmatch[1], ruleSubmatch[2], []string{})
+			parsedContent.rules = append(parsedContent.rules, *newRule)
+			inTarget = true
 		}
 	}
 }
