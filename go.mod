@@ -2,4 +2,4 @@ module github.com/claby2/make-tui
 
 go 1.14
 
-require github.com/spf13/afero v1.4.1 // indirect
+require github.com/gizak/termui/v3 v3.1.0
