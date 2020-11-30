@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 )
@@ -41,8 +42,18 @@ func main() {
 			log.Fatal("no makefile found")
 			os.Exit(1)
 		}
+	} else if os.Args[1] == "-h" || os.Args[1] == "--help" {
+		usage := map[string]string{
+			"-h, --help": "Print this message and exit",
+		}
+		fmt.Printf("Usage: make-tui [options] [file]\n" +
+			"Options:\n")
+		for key, value := range usage {
+			fmt.Println("\t" + key + ": " + value + "\n")
+		}
+		os.Exit(1)
 	} else {
-		filePath = os.Args[1]
+		filePath = os.Args[len(os.Args)-1]
 	}
 
 	content := NewParsedContent(filePath, getFileContent(filePath))
