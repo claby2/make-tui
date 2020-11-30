@@ -5,3 +5,9 @@
 ## Installation
 
     $ go get github.com/claby2/make-tui
+
+## Usage
+
+    Usage: make-tui [options] [file]
+    Options:
+    	-h, --help: Print this message and exit
