@@ -5,7 +5,7 @@ APP_SOURCES = parser.go \
 			  main.go \
 
 build: $(APP_SOURCES)
-	go build -o $(BUILD_DIR)/maketui $(APP_SOURCES)
+	go build -o $(BUILD_DIR)/make-tui $(APP_SOURCES)
 .PHONY: build
 
 run: $(APP_SOURCES)
