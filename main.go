@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -26,7 +27,16 @@ func getFileContent(filePath string) []string {
 
 func main() {
 	var filePath string
-	if len(os.Args[1:]) == 0 {
+	flag.StringVar(&filePath, "f", "", "Parse given file as Makefile")
+	helpFlag := flag.Bool("h", false, "Print this message and exit")
+	flag.Parse()
+
+	if *helpFlag {
+		// Print help message
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		flag.PrintDefaults()
+		os.Exit(1)
+	} else if filePath == "" {
 		// Attempt to find makefile in current directory
 		defaultMakefileNames := []string{"GNUmakefile", "makefile", "Makefile"}
 		foundFile := false
@@ -39,21 +49,9 @@ func main() {
 			}
 		}
 		if !foundFile {
-			log.Fatal("no makefile found")
+			log.Fatal("no Makefile found")
 			os.Exit(1)
 		}
-	} else if os.Args[1] == "-h" || os.Args[1] == "--help" {
-		usage := map[string]string{
-			"-h, --help": "Print this message and exit",
-		}
-		fmt.Printf("Usage: make-tui [options] [file]\n" +
-			"Options:\n")
-		for key, value := range usage {
-			fmt.Println("\t" + key + ": " + value + "\n")
-		}
-		os.Exit(1)
-	} else {
-		filePath = os.Args[len(os.Args)-1]
 	}
 
 	content := NewParsedContent(filePath, getFileContent(filePath))

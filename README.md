@@ -8,6 +8,7 @@
 
 ## Usage
 
-    Usage: make-tui [options] [file]
-    Options:
-    	-h, --help: Print this message and exit
+    Usage of build/maketui:
+      -f string
+            Parse given file as Makefile
+      -h	Print this message and exit
