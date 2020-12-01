@@ -151,10 +151,10 @@ func Render(content *ParsedContent) {
 	ui.Close()
 	if run && target.name != "" {
 		fmt.Println("make", target.name)
-		output, err := exec.Command("make", target.name).Output()
+		output, err := exec.Command("make", "-f"+content.filePath, target.name).CombinedOutput()
+		fmt.Println(string(output))
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(string(output))
 	}
 }
