@@ -139,6 +139,10 @@ func Render(content *ParsedContent) {
 			target.Up(1)
 		case "<Enter>":
 			run = true
+		case "<Resize>":
+			payload := e.Payload.(ui.Resize)
+			grid.SetRect(0, 0, payload.Width, payload.Height)
+			ui.Clear()
 		}
 		dependencyWidget.Text = getDependency(content.rules, target.index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
