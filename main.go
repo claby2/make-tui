@@ -29,6 +29,7 @@ func main() {
 	var filePath string
 	flag.StringVar(&filePath, "f", "", "Parse given file as Makefile")
 	helpFlag := flag.Bool("h", false, "Print this message and exit")
+	allFlag := flag.Bool("a", false, "Display all targets including special built-in targets")
 	flag.Parse()
 
 	if *helpFlag {
@@ -55,6 +56,9 @@ func main() {
 	}
 
 	content := NewParsedContent(filePath, getFileContent(filePath))
+	if *allFlag {
+		content.SetIncludeSpecialTargets(true)
+	}
 	content.Parse()
 
 	Render(content)

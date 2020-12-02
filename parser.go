@@ -16,13 +16,18 @@ func NewRule(target, dependencies string, commands []string, lineNumber int) *Ru
 }
 
 type ParsedContent struct {
-	filePath string
-	content  []string
-	rules    []Rule
+	filePath              string
+	includeSpecialTargets bool
+	content               []string
+	rules                 []Rule
 }
 
 func NewParsedContent(filePath string, content []string) *ParsedContent {
-	return &ParsedContent{filePath: filePath, content: content, rules: []Rule{}}
+	return &ParsedContent{filePath: filePath, includeSpecialTargets: false, content: content, rules: []Rule{}}
+}
+
+func (parsedContent *ParsedContent) SetIncludeSpecialTargets(value bool) {
+	parsedContent.includeSpecialTargets = value
 }
 
 func (parsedContent *ParsedContent) Parse() {
@@ -56,7 +61,7 @@ func (parsedContent *ParsedContent) Parse() {
 		}
 
 		ruleSubmatch := ruleRegexp.FindStringSubmatch(line)
-		if ruleSubmatch != nil {
+		if ruleSubmatch != nil && !(!parsedContent.includeSpecialTargets && isSpecialTarget(ruleSubmatch[1])) {
 			// Match has been found
 			newRule := NewRule(ruleSubmatch[1], ruleSubmatch[2], []string{}, lineNumber)
 			parsedContent.rules = append(parsedContent.rules, *newRule)
@@ -77,4 +82,31 @@ func stripComments(line string) string {
 		}
 	}
 	return line
+}
+
+func isSpecialTarget(target string) bool {
+	// Returns true if the given target is a special built-in target name
+	specialTargetNames := []string{
+		".PHONY",
+		".SUFFIXES",
+		".DEFAULT",
+		".PRECIOUS",
+		".INTERMEDIATE",
+		".SECONDARY",
+		".SECONDEXPANSION",
+		".DELETE_ON_ERROR",
+		".IGNORE",
+		".LOW_RESOLUTION_TIME",
+		".SILENT",
+		".EXPORT_ALL_VARIABLES",
+		".NOTPARALLEL",
+		".ONESHELL",
+		".POSIX",
+	}
+	for _, specialTarget := range specialTargetNames {
+		if target == specialTarget {
+			return true
+		}
+	}
+	return false
 }

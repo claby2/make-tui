@@ -108,3 +108,19 @@ func TestParserMultilineComments(t *testing.T) {
 	}
 	assertParsed(t, fileContent, expected)
 }
+
+func TestParserNotSpecialTarget(t *testing.T) {
+	targetName := ".phony"
+	result := isSpecialTarget(targetName)
+	if result {
+		t.Errorf("%s detected as special target", targetName)
+	}
+}
+
+func TestParserSpecialTarget(t *testing.T) {
+	targetName := ".PHONY"
+	result := isSpecialTarget(targetName)
+	if !result {
+		t.Errorf("%s not detected as special target", targetName)
+	}
+}
