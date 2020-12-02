@@ -76,7 +76,7 @@ func getHighlightedContent(content []string, rules []Rule, termHeight, index int
 
 		// Highlight rule (including commands)
 		for i := lineNumber; i <= lineNumber+numberOfCommands; i++ {
-			contentCopy[i] = "[" + contentCopy[i] + "](fg:yellow,mod:bold)"
+			contentCopy[i] = "[" + contentCopy[i] + "](fg:black,bg:white,mod:bold)"
 		}
 	}
 	return strings.ReplaceAll(strings.Join(contentCopy[firstLine:], "\n"), "\t", strings.Repeat(" ", 4))
@@ -102,7 +102,7 @@ func Render(content *ParsedContent) {
 	targetsWidget := widgets.NewList()
 	targetsWidget.Title = "Targets"
 	targetsWidget.Rows = getTargets(content.rules)
-	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorYellow)
+	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
 
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"
