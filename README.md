@@ -8,7 +8,8 @@
 
 ## Usage
 
-    Usage of build/maketui:
+    Usage of make-tui:
+      -a	Display all targets including special built-in targets
       -f string
             Parse given file as Makefile
       -h	Print this message and exit
