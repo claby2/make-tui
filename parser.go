@@ -5,16 +5,19 @@ import (
 	"strings"
 )
 
+// Rule contains information about a rule
 type Rule struct {
 	target, dependencies string
 	commands             []string
 	lineNumber           int
 }
 
+// NewRule constructs a rule given the target, dependencies, commands, and line number in the Makefile
 func NewRule(target, dependencies string, commands []string, lineNumber int) *Rule {
 	return &Rule{target: target, dependencies: dependencies, commands: commands, lineNumber: lineNumber}
 }
 
+// ParsedContent contains the content of a Makefile with its parsed rules
 type ParsedContent struct {
 	filePath              string
 	includeSpecialTargets bool
@@ -22,14 +25,17 @@ type ParsedContent struct {
 	rules                 []Rule
 }
 
+// NewParsedContent constructs ParsedContent and stages the Makefile for parsing
 func NewParsedContent(filePath string, content []string) *ParsedContent {
 	return &ParsedContent{filePath: filePath, includeSpecialTargets: false, content: content, rules: []Rule{}}
 }
 
+// SetIncludeSpecialTargets sets the option to include special targets to the given boolean value
 func (parsedContent *ParsedContent) SetIncludeSpecialTargets(value bool) {
 	parsedContent.includeSpecialTargets = value
 }
 
+// Parse parses the content of a Makefile and extracts rules from it
 func (parsedContent *ParsedContent) Parse() {
 	inMultilineComment := false
 	inTarget := false

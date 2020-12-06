@@ -11,12 +11,14 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
+// Target contains information about the rules of a Makefile and keeps track of the currently selected rule
 type Target struct {
 	index, numberOfRules int
 	name                 string
 	targets              []string
 }
 
+// NewTarget constructs a Target and decomposes rules into individual target strings
 func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	var targets []string
 	for _, rule := range rules {
@@ -29,6 +31,7 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	return &Target{index: index, numberOfRules: numberOfRules, name: name, targets: targets}
 }
 
+// Down increases the index of the target while taking into account the total number of rules, effectively scrolling down the list of targets
 func (target *Target) Down(delta int) {
 	if target.numberOfRules > 0 {
 		target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
@@ -36,6 +39,7 @@ func (target *Target) Down(delta int) {
 	}
 }
 
+// Up decreases the index of the target while taking into account the total number of rules, effectively scrolling up the list of targets
 func (target *Target) Up(delta int) {
 	if target.numberOfRules > 0 {
 		target.index = int(math.Max(float64(0), float64(target.index-delta)))
@@ -90,6 +94,7 @@ func replaceTabs(content []string) []string {
 	return contentCopy
 }
 
+// Render sets up and renders widgets to build the user interface
 func Render(content *ParsedContent) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
