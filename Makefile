@@ -2,6 +2,8 @@ PROJECT = make-tui
 BUILD_DIR ?= build
 APP_SOURCES = parser.go \
 			  render.go \
+			  search.go \
+			  target.go \
 			  main.go \
 
 build: $(APP_SOURCES)

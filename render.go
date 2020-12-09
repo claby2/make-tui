@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"os/exec"
 	"strings"
 
@@ -11,39 +10,119 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
-// Target contains information about the rules of a Makefile and keeps track of the currently selected rule
-type Target struct {
-	index, numberOfRules int
-	name                 string
-	targets              []string
-}
-
-// NewTarget constructs a Target and decomposes rules into individual target strings
-func NewTarget(index, numberOfRules int, rules []Rule) *Target {
-	var targets []string
-	for _, rule := range rules {
-		targets = append(targets, rule.target)
+// Render sets up and renders widgets to build the user interface
+func Render(content *ParsedContent) {
+	if err := ui.Init(); err != nil {
+		log.Fatalf("failed to initialize termui: %v", err)
 	}
-	var name string
-	if len(targets) > 0 {
-		name = targets[0]
-	}
-	return &Target{index: index, numberOfRules: numberOfRules, name: name, targets: targets}
-}
 
-// Down increases the index of the target while taking into account the total number of rules, effectively scrolling down the list of targets
-func (target *Target) Down(delta int) {
-	if target.numberOfRules > 0 {
-		target.index = int(math.Min(float64(target.numberOfRules-1), float64(target.index+delta)))
-		target.name = target.targets[target.index]
-	}
-}
+	content.content = replaceTabs(content.content)
+	target := NewTarget(0, len(content.rules), content.rules)
+	termWidth, termHeight := ui.TerminalDimensions()
 
-// Up decreases the index of the target while taking into account the total number of rules, effectively scrolling up the list of targets
-func (target *Target) Up(delta int) {
-	if target.numberOfRules > 0 {
-		target.index = int(math.Max(float64(0), float64(target.index-delta)))
-		target.name = target.targets[target.index]
+	searchManager := NewSearchManager()
+
+	searchWidget := widgets.NewParagraph()
+	searchWidget.Title = "Search"
+	searchWidget.BorderStyle = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
+
+	targetsWidget := widgets.NewList()
+	targetsWidget.Title = "Targets"
+	targetsWidget.Rows = getTargets(content.rules)
+	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
+
+	dependencyWidget := widgets.NewParagraph()
+	dependencyWidget.Title = "Dependencies"
+	dependencyWidget.Text = getDependency(content.rules, target.index)
+
+	contentWidget := widgets.NewParagraph()
+	contentWidget.Title = content.filePath
+	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
+
+	grid := ui.NewGrid()
+	grid.SetRect(0, 0, termWidth, termHeight)
+	grid.Set(
+		ui.NewRow(0.1,
+			searchWidget,
+		),
+		ui.NewRow(0.9,
+			ui.NewCol(0.2,
+				ui.NewRow(0.8, targetsWidget),
+				ui.NewRow(0.2, dependencyWidget),
+			),
+			ui.NewCol(0.8, contentWidget),
+		),
+	)
+	ui.Render(grid)
+
+	uiEvents := ui.PollEvents()
+	quit := false
+	run := false
+	for !quit && !run {
+		e := <-uiEvents
+
+		if searchManager.active {
+			// Events if in search mode
+			if isLetter(e.ID) {
+				searchManager.AppendStringToContent(e.ID)
+			} else {
+				switch e.ID {
+				case "<Backspace>":
+					searchManager.Pop()
+				case "<Enter>":
+					// Search for target
+					var index int = target.FindTarget(searchManager.content)
+					if index != -1 {
+						targetsWidget.ScrollAmount(index - target.index)
+						target.SetIndex(index)
+					}
+					fallthrough
+				case "<Escape>":
+					searchManager.SetActive(false)
+					searchWidget.BorderStyle = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
+				}
+
+			}
+		} else {
+			// Events if not in search mode
+			switch e.ID {
+			case "q", "<C-c>":
+				quit = true
+			case "j", "<Down>":
+				targetsWidget.ScrollDown()
+				target.Down(1)
+			case "k", "<Up>":
+				targetsWidget.ScrollUp()
+				target.Up(1)
+			case "/":
+				searchManager.SetActive(true)
+				searchWidget.BorderStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
+			case "<Enter>":
+				run = true
+			}
+		}
+		// Global events
+		switch e.ID {
+		case "<Resize>":
+			payload := e.Payload.(ui.Resize)
+			grid.SetRect(0, 0, payload.Width, payload.Height)
+			termWidth, termHeight = ui.TerminalDimensions()
+			ui.Clear()
+		}
+
+		dependencyWidget.Text = getDependency(content.rules, target.index)
+		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
+		searchWidget.Text = searchManager.GetContent(termWidth - 2)
+		ui.Render(grid)
+	}
+	ui.Close()
+	if run && target.name != "" {
+		fmt.Println("make", target.name)
+		output, err := exec.Command("make", "-f"+content.filePath, target.name).CombinedOutput()
+		fmt.Println(string(output))
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -94,72 +173,6 @@ func replaceTabs(content []string) []string {
 	return contentCopy
 }
 
-// Render sets up and renders widgets to build the user interface
-func Render(content *ParsedContent) {
-	if err := ui.Init(); err != nil {
-		log.Fatalf("failed to initialize termui: %v", err)
-	}
-
-	content.content = replaceTabs(content.content)
-	target := NewTarget(0, len(content.rules), content.rules)
-	termWidth, termHeight := ui.TerminalDimensions()
-
-	targetsWidget := widgets.NewList()
-	targetsWidget.Title = "Targets"
-	targetsWidget.Rows = getTargets(content.rules)
-	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
-
-	dependencyWidget := widgets.NewParagraph()
-	dependencyWidget.Title = "Dependencies"
-	dependencyWidget.Text = getDependency(content.rules, target.index)
-
-	contentWidget := widgets.NewParagraph()
-	contentWidget.Title = content.filePath
-	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
-
-	grid := ui.NewGrid()
-	grid.SetRect(0, 0, termWidth, termHeight)
-	grid.Set(
-		ui.NewCol(0.2,
-			ui.NewRow(0.8, targetsWidget),
-			ui.NewRow(0.2, dependencyWidget),
-		),
-		ui.NewCol(0.8, contentWidget),
-	)
-	ui.Render(grid)
-
-	uiEvents := ui.PollEvents()
-	quit := false
-	run := false
-	for !quit && !run {
-		e := <-uiEvents
-		switch e.ID {
-		case "q", "<C-c>":
-			quit = true
-		case "j", "<Down>":
-			targetsWidget.ScrollDown()
-			target.Down(1)
-		case "k", "<Up>":
-			targetsWidget.ScrollUp()
-			target.Up(1)
-		case "<Enter>":
-			run = true
-		case "<Resize>":
-			payload := e.Payload.(ui.Resize)
-			grid.SetRect(0, 0, payload.Width, payload.Height)
-			ui.Clear()
-		}
-		dependencyWidget.Text = getDependency(content.rules, target.index)
-		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
-		ui.Render(grid)
-	}
-	ui.Close()
-	if run && target.name != "" {
-		fmt.Println("make", target.name)
-		output, err := exec.Command("make", "-f"+content.filePath, target.name).CombinedOutput()
-		fmt.Println(string(output))
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+func isLetter(s string) bool {
+	return s[0] != '<' && s[len(s)-1] != '>'
 }
