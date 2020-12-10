@@ -57,6 +57,7 @@ func Render(content *ParsedContent) {
 	ui.Render(searchWidget, grid)
 
 	uiEvents := ui.PollEvents()
+	previousKey := ""
 	quit := false
 	run := false
 	for !quit && !run {
@@ -94,12 +95,31 @@ func Render(content *ParsedContent) {
 			case "k", "<Up>":
 				targetsWidget.ScrollUp()
 				target.Up(1)
+			case "g":
+				if previousKey == "g" {
+					targetsWidget.ScrollTop()
+					target.Top()
+				}
+			case "G", "<End>":
+				targetsWidget.ScrollBottom()
+				target.Bottom()
+			case "<C-d>":
+				targetsWidget.ScrollHalfPageDown()
+				target.HalfPageDown(targetsWidget.Inner.Dy())
+			case "<C-u>":
+				targetsWidget.ScrollHalfPageUp()
+				target.HalfPageUp(targetsWidget.Inner.Dy())
 			case "/":
 				searchManager.SetActive(true)
 				searchWidget.BorderStyle = searchActiveStyle
 			case "<Enter>":
 				run = true
 			}
+		}
+		if previousKey == e.ID {
+			previousKey = ""
+		} else {
+			previousKey = e.ID
 		}
 		// Global events
 		switch e.ID {

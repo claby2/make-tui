@@ -34,6 +34,26 @@ func (target *Target) Up(delta int) {
 	target.SetIndex(target.index - delta)
 }
 
+// Bottom sets the current index to the last target
+func (target *Target) Bottom() {
+	target.SetIndex(target.numberOfRules - 1)
+}
+
+// Top sets the current index to the first target
+func (target *Target) Top() {
+	target.SetIndex(0)
+}
+
+// HalfPageDown moves down an equivalent of half the number of targets
+func (target *Target) HalfPageDown(listHeight int) {
+	target.SetIndex(target.index + int(math.Floor(float64(listHeight)/2)))
+}
+
+// HalfPageUp moves up an equivalent of half the number of targets
+func (target *Target) HalfPageUp(listHeight int) {
+	target.SetIndex(target.index - int(math.Floor(float64(listHeight)/2)))
+}
+
 // SetIndex sets the current index of Target while taking into account bounds
 func (target *Target) SetIndex(index int) {
 	if target.numberOfRules > 0 {

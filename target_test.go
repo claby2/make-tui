@@ -85,6 +85,54 @@ func TestTargetUp(t *testing.T) {
 	}
 }
 
+func TestTargetBottom(t *testing.T) {
+	var numberOfRules int = 10
+	var startingIndex int = 5
+	target := NewTarget(startingIndex, numberOfRules, getRules(numberOfRules))
+
+	var expected int = 9
+	target.Bottom()
+	if target.index != expected {
+		t.Errorf("got index %d, expected index %d", target.index, expected)
+	}
+}
+
+func TestTargetTop(t *testing.T) {
+	var numberOfRules int = 10
+	var startingIndex int = 5
+	target := NewTarget(startingIndex, numberOfRules, getRules(numberOfRules))
+
+	var expected int = 0
+	target.Top()
+	if target.index != expected {
+		t.Errorf("got index %d, expected index %d", target.index, expected)
+	}
+}
+
+func TestTargetHalfPageDown(t *testing.T) {
+	var numberOfRules int = 10
+	var startingIndex int = 2
+	target := NewTarget(startingIndex, numberOfRules, getRules(numberOfRules))
+
+	var expected int = 7
+	target.HalfPageDown(numberOfRules)
+	if target.index != expected {
+		t.Errorf("got index %d, expected index %d", target.index, expected)
+	}
+}
+
+func TestTargetHalfPageUp(t *testing.T) {
+	var numberOfRules int = 10
+	var startingIndex int = 7
+	target := NewTarget(startingIndex, numberOfRules, getRules(numberOfRules))
+
+	var expected int = 2
+	target.HalfPageUp(numberOfRules)
+	if target.index != expected {
+		t.Errorf("got index %d, expected index %d", target.index, expected)
+	}
+}
+
 func TestTargetFindRealTarget(t *testing.T) {
 	var numberOfRules int = 3
 	target := NewTarget(0, numberOfRules, getRules(numberOfRules))
