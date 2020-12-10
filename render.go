@@ -22,9 +22,14 @@ func Render(content *ParsedContent) {
 
 	searchManager := NewSearchManager()
 
+	var searchActiveStyle ui.Style = ui.NewStyle(ui.ColorYellow, ui.ColorClear)
+	var searchInactiveStyle ui.Style = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
+
+	const searchWidgetHeight int = 3
 	searchWidget := widgets.NewParagraph()
 	searchWidget.Title = "Search"
-	searchWidget.BorderStyle = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
+	searchWidget.BorderStyle = searchInactiveStyle
+	searchWidget.SetRect(0, 0, termWidth, searchWidgetHeight)
 
 	targetsWidget := widgets.NewList()
 	targetsWidget.Title = "Targets"
@@ -40,27 +45,22 @@ func Render(content *ParsedContent) {
 	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 
 	grid := ui.NewGrid()
-	grid.SetRect(0, 0, termWidth, termHeight)
+	grid.SetRect(0, searchWidgetHeight, termWidth, termHeight)
 	grid.Set(
-		ui.NewRow(0.1,
-			searchWidget,
+		ui.NewCol(0.2,
+			ui.NewRow(0.9, targetsWidget),
+			ui.NewRow(0.1, dependencyWidget),
 		),
-		ui.NewRow(0.9,
-			ui.NewCol(0.2,
-				ui.NewRow(0.8, targetsWidget),
-				ui.NewRow(0.2, dependencyWidget),
-			),
-			ui.NewCol(0.8, contentWidget),
-		),
+		ui.NewCol(0.8, contentWidget),
 	)
-	ui.Render(grid)
+
+	ui.Render(searchWidget, grid)
 
 	uiEvents := ui.PollEvents()
 	quit := false
 	run := false
 	for !quit && !run {
 		e := <-uiEvents
-
 		if searchManager.active {
 			// Events if in search mode
 			if isLetter(e.ID) {
@@ -79,7 +79,7 @@ func Render(content *ParsedContent) {
 					fallthrough
 				case "<Escape>":
 					searchManager.SetActive(false)
-					searchWidget.BorderStyle = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
+					searchWidget.BorderStyle = searchInactiveStyle
 				}
 
 			}
@@ -96,7 +96,7 @@ func Render(content *ParsedContent) {
 				target.Up(1)
 			case "/":
 				searchManager.SetActive(true)
-				searchWidget.BorderStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
+				searchWidget.BorderStyle = searchActiveStyle
 			case "<Enter>":
 				run = true
 			}
@@ -105,7 +105,8 @@ func Render(content *ParsedContent) {
 		switch e.ID {
 		case "<Resize>":
 			payload := e.Payload.(ui.Resize)
-			grid.SetRect(0, 0, payload.Width, payload.Height)
+			searchWidget.SetRect(0, 0, payload.Width, searchWidgetHeight)
+			grid.SetRect(0, searchWidgetHeight, payload.Width, payload.Height)
 			termWidth, termHeight = ui.TerminalDimensions()
 			ui.Clear()
 		}
@@ -113,8 +114,9 @@ func Render(content *ParsedContent) {
 		dependencyWidget.Text = getDependency(content.rules, target.index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 		searchWidget.Text = searchManager.GetContent(termWidth - 2)
-		ui.Render(grid)
+		ui.Render(searchWidget, grid)
 	}
+
 	ui.Close()
 	if run && target.name != "" {
 		fmt.Println("make", target.name)
