@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSearchGetContent(t *testing.T) {
+func TestSearchGetContentLongContent(t *testing.T) {
 	var maximum int = 3
 	var content string = "abcdef"
 
@@ -13,6 +13,21 @@ func TestSearchGetContent(t *testing.T) {
 	searchManager.AppendStringToContent(content)
 
 	var expected string = "def"
+	var result string = searchManager.GetContent(maximum)
+	if result != expected {
+		t.Errorf("got %s, expected %s", result, expected)
+	}
+}
+
+func TestSearchGetContentShortContent(t *testing.T) {
+	var maximum int = 3
+	var content string = "abc"
+
+	searchManager := NewSearchManager()
+	searchManager.SetActive(true)
+	searchManager.AppendStringToContent(content)
+
+	var expected string = "abc"
 	var result string = searchManager.GetContent(maximum)
 	if result != expected {
 		t.Errorf("got %s, expected %s", result, expected)
