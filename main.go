@@ -8,13 +8,20 @@ import (
 	"os"
 )
 
+// Check is a helper function to error check functions which can be used to error check deferred functions
+func Check(f func() error) {
+	if err := f(); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getFileContent(filePath string) []string {
 	var fileContent []string
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer Check(file.Close)
 	scanner := bufio.NewScanner(file)
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
