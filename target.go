@@ -2,10 +2,16 @@ package main
 
 import (
 	"math"
+
+	ui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
 )
 
-// Target contains information about the rules of a Makefile and keeps track of the currently selected rule
+// Target contains information about and renders the rules of a Makefile and keeps track of the currently selected rule
 type Target struct {
+	*widgets.List
+
+	search               *Search
 	index, numberOfRules int
 	name                 string
 	targets              []string
@@ -21,7 +27,24 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	if len(targets) > 0 {
 		name = targets[0]
 	}
-	return &Target{index: index, numberOfRules: numberOfRules, name: name, targets: targets}
+	target := &Target{
+		List:          widgets.NewList(),
+		index:         index,
+		numberOfRules: numberOfRules,
+		name:          name,
+		targets:       targets,
+	}
+
+	target.Title = "Targets"
+	target.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
+
+	//target.search = NewSearch()
+	target.search = &Search{
+		active:  false,
+		content: "",
+	}
+
+	return target
 }
 
 // Down increases the index of the target while taking into account the total number of rules, effectively scrolling down the list of targets
@@ -70,4 +93,17 @@ func (target *Target) FindTarget(goalTargetName string) int {
 		}
 	}
 	return -1
+}
+
+// SetRect sets the rectangle for the target widget for rendering
+func (target *Target) SetRect(x1, y1, x2, y2 int) {
+	target.List.SetRect(x1, y1, x2, y2)
+	// Position search at the bottom
+	target.search.SetRect(x1+2, y2-1, x2-2, y2)
+}
+
+// Draw draws the search and target widgets
+func (target *Target) Draw(buf *ui.Buffer) {
+	target.List.Draw(buf)
+	target.search.Draw(buf)
 }

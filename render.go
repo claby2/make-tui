@@ -17,24 +17,10 @@ func Render(content *ParsedContent) {
 	}
 
 	content.content = replaceTabs(content.content)
-	target := NewTarget(0, len(content.rules), content.rules)
 	termWidth, termHeight := ui.TerminalDimensions()
 
-	searchManager := NewSearchManager()
-
-	var searchActiveStyle ui.Style = ui.NewStyle(ui.ColorYellow, ui.ColorClear)
-	var searchInactiveStyle ui.Style = ui.NewStyle(ui.ColorWhite, ui.ColorClear)
-
-	const searchWidgetHeight int = 3
-	searchWidget := widgets.NewParagraph()
-	searchWidget.Title = "Search"
-	searchWidget.BorderStyle = searchInactiveStyle
-	searchWidget.SetRect(0, 0, termWidth, searchWidgetHeight)
-
-	targetsWidget := widgets.NewList()
-	targetsWidget.Title = "Targets"
-	targetsWidget.Rows = getTargets(content.rules)
-	targetsWidget.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
+	target := NewTarget(0, len(content.rules), content.rules)
+	target.Rows = getTargets(content.rules)
 
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"
@@ -45,16 +31,16 @@ func Render(content *ParsedContent) {
 	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
 
 	grid := ui.NewGrid()
-	grid.SetRect(0, searchWidgetHeight, termWidth, termHeight)
+	grid.SetRect(0, 0, termWidth, termHeight)
 	grid.Set(
 		ui.NewCol(0.2,
-			ui.NewRow(0.9, targetsWidget),
 			ui.NewRow(0.1, dependencyWidget),
+			ui.NewRow(0.9, target),
 		),
 		ui.NewCol(0.8, contentWidget),
 	)
 
-	ui.Render(searchWidget, grid)
+	ui.Render(grid)
 
 	uiEvents := ui.PollEvents()
 	previousKey := ""
@@ -62,25 +48,24 @@ func Render(content *ParsedContent) {
 	run := false
 	for !quit && !run {
 		e := <-uiEvents
-		if searchManager.active {
+		if target.search.active {
 			// Events if in search mode
 			if isLetter(e.ID) {
-				searchManager.AppendStringToContent(e.ID)
+				target.search.AppendStringToContent(e.ID)
 			} else {
 				switch e.ID {
 				case "<Backspace>":
-					searchManager.Pop()
+					target.search.Pop()
 				case "<Enter>":
 					// Search for target
-					var index int = target.FindTarget(searchManager.content)
+					var index int = target.FindTarget(target.search.content)
 					if index != -1 {
-						targetsWidget.ScrollAmount(index - target.index)
+						target.ScrollAmount(index - target.index)
 						target.SetIndex(index)
 					}
 					fallthrough
 				case "<Escape>":
-					searchManager.SetActive(false)
-					searchWidget.BorderStyle = searchInactiveStyle
+					target.search.SetActive(false)
 				}
 
 			}
@@ -90,28 +75,27 @@ func Render(content *ParsedContent) {
 			case "q", "<C-c>":
 				quit = true
 			case "j", "<Down>":
-				targetsWidget.ScrollDown()
+				target.ScrollDown()
 				target.Down(1)
 			case "k", "<Up>":
-				targetsWidget.ScrollUp()
+				target.ScrollUp()
 				target.Up(1)
 			case "g":
 				if previousKey == "g" {
-					targetsWidget.ScrollTop()
+					target.ScrollTop()
 					target.Top()
 				}
 			case "G", "<End>":
-				targetsWidget.ScrollBottom()
+				target.ScrollBottom()
 				target.Bottom()
 			case "<C-d>":
-				targetsWidget.ScrollHalfPageDown()
-				target.HalfPageDown(targetsWidget.Inner.Dy())
+				target.ScrollHalfPageDown()
+				target.HalfPageDown(target.Inner.Dy())
 			case "<C-u>":
-				targetsWidget.ScrollHalfPageUp()
-				target.HalfPageUp(targetsWidget.Inner.Dy())
+				target.ScrollHalfPageUp()
+				target.HalfPageUp(target.Inner.Dy())
 			case "/":
-				searchManager.SetActive(true)
-				searchWidget.BorderStyle = searchActiveStyle
+				target.search.SetActive(true)
 			case "<Enter>":
 				run = true
 			}
@@ -125,16 +109,14 @@ func Render(content *ParsedContent) {
 		switch e.ID {
 		case "<Resize>":
 			payload := e.Payload.(ui.Resize)
-			searchWidget.SetRect(0, 0, payload.Width, searchWidgetHeight)
-			grid.SetRect(0, searchWidgetHeight, payload.Width, payload.Height)
+			grid.SetRect(0, 0, payload.Width, payload.Height)
 			termWidth, termHeight = ui.TerminalDimensions()
 			ui.Clear()
 		}
 
 		dependencyWidget.Text = getDependency(content.rules, target.index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
-		searchWidget.Text = searchManager.GetContent(termWidth - 2)
-		ui.Render(searchWidget, grid)
+		ui.Render(grid)
 	}
 
 	ui.Close()
