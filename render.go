@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os/exec"
@@ -121,12 +122,17 @@ func Render(content *ParsedContent) {
 
 	ui.Close()
 	if run && target.name != "" {
-		fmt.Println("make", target.name)
-		output, err := exec.Command("make", "-f"+content.filePath, target.name).CombinedOutput()
-		fmt.Println(string(output))
-		if err != nil {
-			log.Fatal(err)
+		cmd := exec.Command("make", "-f"+content.filePath, target.name)
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Start()
+
+		scanner := bufio.NewScanner(stdout)
+		scanner.Split(bufio.ScanLines)
+		for scanner.Scan() {
+			m := scanner.Text()
+			fmt.Println(m)
 		}
+		cmd.Wait()
 	}
 }
 
