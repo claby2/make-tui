@@ -124,7 +124,7 @@ func Render(content *ParsedContent) {
 	if run && target.Name != "" {
 		cmd := exec.Command("make", "-f"+content.filePath, target.Name)
 		stdout, _ := cmd.StdoutPipe()
-		cmd.Start()
+		Check(cmd.Start)
 
 		scanner := bufio.NewScanner(stdout)
 		scanner.Split(bufio.ScanLines)
@@ -132,7 +132,7 @@ func Render(content *ParsedContent) {
 			m := scanner.Text()
 			fmt.Println(m)
 		}
-		cmd.Wait()
+		Check(cmd.Wait)
 	}
 }
 
