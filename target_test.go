@@ -21,8 +21,8 @@ func TestTargetSetIndex(t *testing.T) {
 
 	var expected int = 5
 	target.SetIndex(expected)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -32,8 +32,8 @@ func TestTargetSetIndexOutOfBounds(t *testing.T) {
 
 	var expected int = numberOfRules - 1
 	target.SetIndex(numberOfRules + 1)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -43,8 +43,8 @@ func TestTargetSetIndexNegative(t *testing.T) {
 
 	var expected int = 0
 	target.SetIndex(-1)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -54,8 +54,8 @@ func TestTargetNoRules(t *testing.T) {
 
 	var expected int = 0
 	target.SetIndex(1)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -67,8 +67,8 @@ func TestTargetDown(t *testing.T) {
 	var delta int = 3
 	var expected int = startingIndex + delta
 	target.Down(delta)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -80,8 +80,8 @@ func TestTargetUp(t *testing.T) {
 	var delta int = 3
 	var expected int = startingIndex - delta
 	target.Up(delta)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -92,8 +92,8 @@ func TestTargetBottom(t *testing.T) {
 
 	var expected int = 9
 	target.Bottom()
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -104,8 +104,8 @@ func TestTargetTop(t *testing.T) {
 
 	var expected int = 0
 	target.Top()
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -116,8 +116,8 @@ func TestTargetHalfPageDown(t *testing.T) {
 
 	var expected int = 7
 	target.HalfPageDown(numberOfRules)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 
@@ -128,8 +128,8 @@ func TestTargetHalfPageUp(t *testing.T) {
 
 	var expected int = 2
 	target.HalfPageUp(numberOfRules)
-	if target.index != expected {
-		t.Errorf("got index %d, expected index %d", target.index, expected)
+	if target.Index != expected {
+		t.Errorf("got index %d, expected index %d", target.Index, expected)
 	}
 }
 

@@ -11,10 +11,11 @@ import (
 type Target struct {
 	*widgets.List
 
-	search               *Search
-	index, numberOfRules int
-	name                 string
-	targets              []string
+	Search        *Search
+	Index         int
+	Name          string
+	targets       []string
+	numberOfRules int
 }
 
 // NewTarget constructs a Target and decomposes rules into individual target strings
@@ -29,9 +30,9 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	}
 	target := &Target{
 		List:          widgets.NewList(),
-		index:         index,
+		Index:         index,
 		numberOfRules: numberOfRules,
-		name:          name,
+		Name:          name,
 		targets:       targets,
 	}
 
@@ -39,7 +40,7 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	target.SelectedRowStyle = ui.NewStyle(ui.ColorBlack, ui.ColorWhite)
 
 	//target.search = NewSearch()
-	target.search = &Search{
+	target.Search = &Search{
 		active:  false,
 		content: "",
 	}
@@ -49,12 +50,12 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 
 // Down increases the index of the target while taking into account the total number of rules, effectively scrolling down the list of targets
 func (target *Target) Down(delta int) {
-	target.SetIndex(target.index + delta)
+	target.SetIndex(target.Index + delta)
 }
 
 // Up decreases the index of the target while taking into account the total number of rules, effectively scrolling up the list of targets
 func (target *Target) Up(delta int) {
-	target.SetIndex(target.index - delta)
+	target.SetIndex(target.Index - delta)
 }
 
 // Bottom sets the current index to the last target
@@ -69,19 +70,19 @@ func (target *Target) Top() {
 
 // HalfPageDown moves down an equivalent of half the number of targets
 func (target *Target) HalfPageDown(listHeight int) {
-	target.SetIndex(target.index + int(math.Floor(float64(listHeight)/2)))
+	target.SetIndex(target.Index + int(math.Floor(float64(listHeight)/2)))
 }
 
 // HalfPageUp moves up an equivalent of half the number of targets
 func (target *Target) HalfPageUp(listHeight int) {
-	target.SetIndex(target.index - int(math.Floor(float64(listHeight)/2)))
+	target.SetIndex(target.Index - int(math.Floor(float64(listHeight)/2)))
 }
 
 // SetIndex sets the current index of Target while taking into account bounds
 func (target *Target) SetIndex(index int) {
 	if target.numberOfRules > 0 {
-		target.index = int(math.Max(float64(0), math.Min(float64(target.numberOfRules-1), float64(index))))
-		target.name = target.targets[target.index]
+		target.Index = int(math.Max(float64(0), math.Min(float64(target.numberOfRules-1), float64(index))))
+		target.Name = target.targets[target.Index]
 	}
 }
 
@@ -99,11 +100,11 @@ func (target *Target) FindTarget(goalTargetName string) int {
 func (target *Target) SetRect(x1, y1, x2, y2 int) {
 	target.List.SetRect(x1, y1, x2, y2)
 	// Position search at the bottom
-	target.search.SetRect(x1+2, y2-1, x2-2, y2)
+	target.Search.SetRect(x1+2, y2-1, x2-2, y2)
 }
 
 // Draw draws the search and target widgets
 func (target *Target) Draw(buf *ui.Buffer) {
 	target.List.Draw(buf)
-	target.search.Draw(buf)
+	target.Search.Draw(buf)
 }

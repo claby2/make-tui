@@ -25,11 +25,11 @@ func Render(content *ParsedContent) {
 
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"
-	dependencyWidget.Text = getDependency(content.rules, target.index)
+	dependencyWidget.Text = getDependency(content.rules, target.Index)
 
 	contentWidget := widgets.NewParagraph()
 	contentWidget.Title = content.filePath
-	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
+	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.Index)
 
 	grid := ui.NewGrid()
 	grid.SetRect(0, 0, termWidth, termHeight)
@@ -49,24 +49,24 @@ func Render(content *ParsedContent) {
 	run := false
 	for !quit && !run {
 		e := <-uiEvents
-		if target.search.active {
+		if target.Search.active {
 			// Events if in search mode
 			if isLetter(e.ID) {
-				target.search.AppendStringToContent(e.ID)
+				target.Search.AppendStringToContent(e.ID)
 			} else {
 				switch e.ID {
 				case "<Backspace>":
-					target.search.Pop()
+					target.Search.Pop()
 				case "<Enter>":
 					// Search for target
-					var index int = target.FindTarget(target.search.content)
+					var index int = target.FindTarget(target.Search.content)
 					if index != -1 {
-						target.ScrollAmount(index - target.index)
+						target.ScrollAmount(index - target.Index)
 						target.SetIndex(index)
 					}
 					fallthrough
 				case "<Escape>":
-					target.search.SetActive(false)
+					target.Search.SetActive(false)
 				}
 
 			}
@@ -96,7 +96,7 @@ func Render(content *ParsedContent) {
 				target.ScrollHalfPageUp()
 				target.HalfPageUp(target.Inner.Dy())
 			case "/":
-				target.search.SetActive(true)
+				target.Search.SetActive(true)
 			case "<Enter>":
 				run = true
 			}
@@ -115,14 +115,14 @@ func Render(content *ParsedContent) {
 			ui.Clear()
 		}
 
-		dependencyWidget.Text = getDependency(content.rules, target.index)
-		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.index)
+		dependencyWidget.Text = getDependency(content.rules, target.Index)
+		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.Index)
 		ui.Render(grid)
 	}
 
 	ui.Close()
-	if run && target.name != "" {
-		cmd := exec.Command("make", "-f"+content.filePath, target.name)
+	if run && target.Name != "" {
+		cmd := exec.Command("make", "-f"+content.filePath, target.Name)
 		stdout, _ := cmd.StdoutPipe()
 		cmd.Start()
 
