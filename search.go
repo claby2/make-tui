@@ -73,7 +73,7 @@ func (search *Search) Draw(buf *ui.Buffer) {
 	content := search.GetContent(maximumContentLength)
 
 	// Fill with initial content including start of search block
-	label = "Search: [" + content
+	label += content
 	p := image.Pt(search.Min.X, search.Min.Y)
 	buf.SetString(label, style, p)
 	p.X += len(label)
