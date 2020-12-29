@@ -62,7 +62,6 @@ func Render(content *ParsedContent) {
 					var index int = target.FindTarget(target.Search.content)
 					if index != -1 {
 						target.ScrollAmount(index - target.Index)
-						target.SetIndex(index)
 					}
 					fallthrough
 				case "<Escape>":
@@ -77,24 +76,22 @@ func Render(content *ParsedContent) {
 				quit = true
 			case "j", "<Down>":
 				target.ScrollDown()
-				target.Down(1)
 			case "k", "<Up>":
 				target.ScrollUp()
-				target.Up(1)
 			case "g":
 				if previousKey == "g" {
 					target.ScrollTop()
-					target.Top()
 				}
 			case "G", "<End>":
 				target.ScrollBottom()
-				target.Bottom()
 			case "<C-d>":
 				target.ScrollHalfPageDown()
-				target.HalfPageDown(target.Inner.Dy())
 			case "<C-u>":
 				target.ScrollHalfPageUp()
-				target.HalfPageUp(target.Inner.Dy())
+			case "<C-f>":
+				target.ScrollPageDown()
+			case "<C-b>":
+				target.ScrollPageUp()
 			case "/":
 				target.Search.SetActive(true)
 			case "<Enter>":
@@ -114,7 +111,7 @@ func Render(content *ParsedContent) {
 			termWidth, termHeight = ui.TerminalDimensions()
 			ui.Clear()
 		}
-
+		target.Index = target.SelectedRow
 		dependencyWidget.Text = getDependency(content.rules, target.Index)
 		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.Index)
 		ui.Render(grid)
