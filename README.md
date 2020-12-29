@@ -1,5 +1,7 @@
 # make-tui
 
+![preview](./assets/preview.png)
+
 `make-tui` is an application to display and run Makefile rules in the terminal.
 
 ## Installation
