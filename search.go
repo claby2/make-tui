@@ -15,7 +15,7 @@ type Search struct {
 	content string
 }
 
-// NewSearch constructs a Search and sets active to false and content to an empty strin`
+// NewSearch constructs a Search and sets active to false and content to an empty string
 func NewSearch() *Search {
 	return &Search{active: false, content: ""}
 }

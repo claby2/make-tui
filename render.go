@@ -23,13 +23,15 @@ func Render(content *ParsedContent) {
 	target := NewTarget(0, len(content.rules), content.rules)
 	target.Rows = getTargets(content.rules)
 
+	highlighter := NewHighlighter("vim")
+
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"
 	dependencyWidget.Text = getDependency(content.rules, target.Index)
 
 	contentWidget := widgets.NewParagraph()
 	contentWidget.Title = content.filePath
-	contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.Index)
+	contentWidget.Text = getContent(content.content, highlighter, content.rules, termHeight, target.Index)
 
 	grid := ui.NewGrid()
 	grid.SetRect(0, 0, termWidth, termHeight)
@@ -113,13 +115,14 @@ func Render(content *ParsedContent) {
 		}
 		target.Index = target.SelectedRow
 		dependencyWidget.Text = getDependency(content.rules, target.Index)
-		contentWidget.Text = getHighlightedContent(content.content, content.rules, termHeight, target.Index)
+		contentWidget.Text = getContent(content.content, highlighter, content.rules, termHeight, target.Index)
 		ui.Render(grid)
 	}
 
 	ui.Close()
-	if run && target.Name != "" {
-		cmd := exec.Command("make", "-f"+content.filePath, target.Name)
+	targetName := target.GetName()
+	if run && targetName != "" {
+		cmd := exec.Command("make", "-f"+content.filePath, targetName)
 		stdout, _ := cmd.StdoutPipe()
 		Check(cmd.Start)
 
@@ -153,23 +156,21 @@ func getDependency(rules []Rule, index int) string {
 	return ""
 }
 
-func getHighlightedContent(content []string, rules []Rule, termHeight, index int) string {
+func getContent(content []string, highlighter *Highlighter, rules []Rule, termHeight, index int) string {
 	contentCopy := append([]string(nil), content...)
+	highlightedContent := highlighter.GetHighlightedContent(contentCopy)
 	firstLine := 0
 	if index < len(rules) {
 		lineNumber := rules[index].lineNumber
-		numberOfCommands := len(rules[index].commands)
 
-		if len(contentCopy) > termHeight-1 {
+		if len(content) > termHeight-1 {
 			firstLine = lineNumber
 		}
 
 		// Highlight rule (including commands)
-		for i := lineNumber; i <= lineNumber+numberOfCommands; i++ {
-			contentCopy[i] = "[" + contentCopy[i] + "](fg:black,bg:white,mod:bold)"
-		}
+		highlightedContent[lineNumber] = "[" + content[lineNumber] + "](fg:black,bg:white,mod:bold)"
 	}
-	return strings.ReplaceAll(strings.Join(contentCopy[firstLine:], "\n"), "\t", strings.Repeat(" ", 4))
+	return strings.ReplaceAll(strings.Join(highlightedContent[firstLine:], "\n"), "\t", strings.Repeat(" ", 4))
 }
 
 func replaceTabs(content []string) []string {

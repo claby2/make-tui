@@ -45,7 +45,7 @@ func (parsedContent *ParsedContent) Parse() {
 		// Handle multiline comments
 		if inMultilineComment {
 			inTarget = false
-			inMultilineComment = line[len(line)-1:] == "\\"
+			inMultilineComment = len(line) > 0 && line[len(line)-1:] == "\\"
 			// If currently in multiline comment, the entire line is commented
 			continue
 		} else {

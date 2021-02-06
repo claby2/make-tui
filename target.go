@@ -11,7 +11,6 @@ type Target struct {
 
 	Search        *Search
 	Index         int
-	Name          string
 	targets       []string
 	numberOfRules int
 }
@@ -22,15 +21,10 @@ func NewTarget(index, numberOfRules int, rules []Rule) *Target {
 	for _, rule := range rules {
 		targets = append(targets, rule.target)
 	}
-	var name string
-	if len(targets) > 0 {
-		name = targets[0]
-	}
 	target := &Target{
 		List:          widgets.NewList(),
 		Index:         index,
 		numberOfRules: numberOfRules,
-		Name:          name,
 		targets:       targets,
 	}
 
@@ -54,6 +48,11 @@ func (target *Target) FindTarget(goalTargetName string) int {
 		}
 	}
 	return -1
+}
+
+// GetName returns the name of the currently selected target
+func (target *Target) GetName() string {
+	return target.targets[target.Index]
 }
 
 // SetRect sets the rectangle for the target widget for rendering

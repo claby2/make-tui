@@ -1,6 +1,7 @@
 PROJECT = make-tui
 BUILD_DIR ?= build
-APP_SOURCES = parser.go \
+APP_SOURCES = highlighter.go \
+			  parser.go \
 			  render.go \
 			  search.go \
 			  target.go \
