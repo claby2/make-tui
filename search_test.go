@@ -5,37 +5,37 @@ import (
 )
 
 func TestSearchGetContentLongContent(t *testing.T) {
-	var maximum int = 3
-	var content string = "abcdef"
+	maximum := 3
+	content := "abcdef"
 
 	search := NewSearch()
 	search.SetActive(true)
 	search.AppendStringToContent(content)
 
-	var expected string = "def"
-	var result string = search.GetContent(maximum)
+	expected := "def"
+	result := search.GetContent(maximum)
 	if result != expected {
 		t.Errorf("got %s, expected %s", result, expected)
 	}
 }
 
 func TestSearchGetContentShortContent(t *testing.T) {
-	var maximum int = 3
-	var content string = "abc"
+	maximum := 3
+	content := "abc"
 
 	search := NewSearch()
 	search.SetActive(true)
 	search.AppendStringToContent(content)
 
-	var expected string = "abc"
-	var result string = search.GetContent(maximum)
+	expected := "abc"
+	result := search.GetContent(maximum)
 	if result != expected {
 		t.Errorf("got %s, expected %s", result, expected)
 	}
 }
 
 func TestSearchActive(t *testing.T) {
-	var content string = "foo"
+	content := "foo"
 
 	search := NewSearch()
 	search.SetActive(false)
@@ -47,13 +47,13 @@ func TestSearchActive(t *testing.T) {
 }
 
 func TestSearchPop(t *testing.T) {
-	var content string = "bar"
+	content := "bar"
 
 	search := NewSearch()
 	search.SetActive(true)
 	search.AppendStringToContent(content)
 
-	var expected string = "ba"
+	expected := "ba"
 	search.Pop()
 	if search.content != expected {
 		t.Errorf("got %s, expected %s", search.content, expected)

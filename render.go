@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os/exec"
@@ -17,21 +16,21 @@ func Render(content *ParsedContent) {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
-	content.content = replaceTabs(content.content)
+	content.Content = replaceTabs(content.Content)
 	termWidth, termHeight := ui.TerminalDimensions()
 
-	target := NewTarget(0, len(content.rules), content.rules)
-	target.Rows = getTargets(content.rules)
+	target := NewTarget(0, len(content.Rules), content.Rules)
+	target.Rows = getTargets(content.Rules)
 
 	highlighter := NewHighlighter("vim")
 
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"
-	dependencyWidget.Text = getDependency(content.rules, target.Index)
+	dependencyWidget.Text = getDependency(content.Rules, target.Index)
 
 	contentWidget := widgets.NewParagraph()
-	contentWidget.Title = content.filePath
-	contentWidget.Text = getContent(content.content, highlighter, content.rules, termHeight, target.Index)
+	contentWidget.Title = content.FilePath
+	contentWidget.Text = getContent(content.Content, highlighter, content.Rules, termHeight, target.Index)
 
 	grid := ui.NewGrid()
 	grid.SetRect(0, 0, termWidth, termHeight)
@@ -114,25 +113,14 @@ func Render(content *ParsedContent) {
 			ui.Clear()
 		}
 		target.Index = target.SelectedRow
-		dependencyWidget.Text = getDependency(content.rules, target.Index)
-		contentWidget.Text = getContent(content.content, highlighter, content.rules, termHeight, target.Index)
+		dependencyWidget.Text = getDependency(content.Rules, target.Index)
+		contentWidget.Text = getContent(content.Content, highlighter, content.Rules, termHeight, target.Index)
 		ui.Render(grid)
 	}
-
 	ui.Close()
-	targetName := target.GetName()
-	if run && targetName != "" {
-		cmd := exec.Command("make", "-f"+content.filePath, targetName)
-		stdout, _ := cmd.StdoutPipe()
-		Check(cmd.Start)
 
-		scanner := bufio.NewScanner(stdout)
-		scanner.Split(bufio.ScanLines)
-		for scanner.Scan() {
-			m := scanner.Text()
-			fmt.Println(m)
-		}
-		Check(cmd.Wait)
+	if run {
+		runTarget(target.GetName(), content.FilePath)
 	}
 }
 
@@ -183,4 +171,14 @@ func replaceTabs(content []string) []string {
 
 func isLetter(s string) bool {
 	return s[0] != '<' && s[len(s)-1] != '>'
+}
+
+func runTarget(target, filePath string) {
+	if target != "" {
+		// Compose command
+		cmd := exec.Command("make", "-f"+filePath, target)
+		// CombinedOutput will return both standard output and standard error
+		stdoutStderr, _ := cmd.CombinedOutput()
+		fmt.Print(string(stdoutStderr))
+	}
 }

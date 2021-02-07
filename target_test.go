@@ -16,22 +16,22 @@ func getRules(length int) []Rule {
 }
 
 func TestTargetFindRealTarget(t *testing.T) {
-	var numberOfRules int = 3
+	numberOfRules := 3
 	target := NewTarget(0, numberOfRules, getRules(numberOfRules))
 
-	var expected int = 2
-	var result int = target.FindTarget("target2")
+	expected := 2
+	result := target.FindTarget("target2")
 	if result != expected {
 		t.Errorf("got index %d, expected index %d", result, expected)
 	}
 }
 
 func TestTargetFindFakeTarget(t *testing.T) {
-	var numberOfRules int = 3
+	numberOfRules := 3
 	target := NewTarget(0, numberOfRules, getRules(numberOfRules))
 
-	var expected int = -1
-	var result int = target.FindTarget("fake")
+	expected := -1
+	result := target.FindTarget("fake")
 	if result != expected {
 		t.Errorf("got index %d, expected index %d", result, expected)
 	}

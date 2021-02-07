@@ -39,5 +39,4 @@ func TestGetHighlightedContent(t *testing.T) {
 	if result != expected {
 		t.Errorf("expected highlighted content %d, received %d", expected, result)
 	}
-
 }

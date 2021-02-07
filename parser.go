@@ -19,15 +19,15 @@ func NewRule(target, dependencies string, commands []string, lineNumber int) *Ru
 
 // ParsedContent contains the content of a Makefile with its parsed rules
 type ParsedContent struct {
-	filePath              string
+	FilePath              string
 	includeSpecialTargets bool
-	content               []string
-	rules                 []Rule
+	Content               []string
+	Rules                 []Rule
 }
 
 // NewParsedContent constructs ParsedContent and stages the Makefile for parsing
 func NewParsedContent(filePath string, content []string) *ParsedContent {
-	return &ParsedContent{filePath: filePath, includeSpecialTargets: false, content: content, rules: []Rule{}}
+	return &ParsedContent{FilePath: filePath, includeSpecialTargets: false, Content: content, Rules: []Rule{}}
 }
 
 // SetIncludeSpecialTargets sets the option to include special targets to the given boolean value
@@ -41,7 +41,7 @@ func (parsedContent *ParsedContent) Parse() {
 	inTarget := false
 	multilineCommentRegexp := regexp.MustCompile(`^.*#.*\\$`)
 	ruleRegexp := regexp.MustCompile(`^([^:\s]+)\s*:\s*([^=].*)?$`)
-	for lineNumber, line := range parsedContent.content {
+	for lineNumber, line := range parsedContent.Content {
 		// Handle multiline comments
 		if inMultilineComment {
 			inTarget = false
@@ -59,8 +59,8 @@ func (parsedContent *ParsedContent) Parse() {
 		// Handle rule commands
 		if inTarget && (len(line) == 0 || line[0] == '\t') {
 			// Current line is a command
-			ruleIndex := len(parsedContent.rules) - 1
-			parsedContent.rules[ruleIndex].commands = append(parsedContent.rules[ruleIndex].commands, strings.TrimSpace(line))
+			ruleIndex := len(parsedContent.Rules) - 1
+			parsedContent.Rules[ruleIndex].commands = append(parsedContent.Rules[ruleIndex].commands, strings.TrimSpace(line))
 			continue
 		} else if inTarget {
 			inTarget = false
@@ -70,7 +70,7 @@ func (parsedContent *ParsedContent) Parse() {
 		if ruleSubmatch != nil && !(!parsedContent.includeSpecialTargets && isSpecialTarget(ruleSubmatch[1])) {
 			// Match has been found
 			newRule := NewRule(ruleSubmatch[1], ruleSubmatch[2], []string{}, lineNumber)
-			parsedContent.rules = append(parsedContent.rules, *newRule)
+			parsedContent.Rules = append(parsedContent.Rules, *newRule)
 			inTarget = true
 		}
 	}

@@ -36,7 +36,7 @@ func assertRulesEqual(t *testing.T, result, expected []Rule) {
 func assertParsed(t *testing.T, fileContent []string, expected []Rule) {
 	content := NewParsedContent("fileName", fileContent)
 	content.Parse()
-	assertRulesEqual(t, content.rules, expected)
+	assertRulesEqual(t, content.Rules, expected)
 }
 
 func TestParserNoDependencies(t *testing.T) {
