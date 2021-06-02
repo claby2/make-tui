@@ -11,7 +11,7 @@ import (
 )
 
 // Render sets up and renders widgets to build the user interface
-func Render(content *ParsedContent) {
+func Render(content *ParsedContent, theme string) {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
@@ -22,7 +22,7 @@ func Render(content *ParsedContent) {
 	target := NewTarget(0, len(content.Rules), content.Rules)
 	target.Rows = getTargets(content.Rules)
 
-	highlighter := NewHighlighter("vim")
+	highlighter := NewHighlighter(theme)
 
 	dependencyWidget := widgets.NewParagraph()
 	dependencyWidget.Title = "Dependencies"

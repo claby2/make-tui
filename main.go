@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/alecthomas/chroma/styles"
+	"github.com/spf13/pflag"
 )
 
 // Check is a helper function to error check functions which can be used to error check deferred functions
@@ -34,16 +36,26 @@ func getFileContent(filePath string) []string {
 
 func main() {
 	var filePath string
-	flag.StringVar(&filePath, "f", "", "Parse given file as Makefile")
-	helpFlag := flag.Bool("h", false, "Print this message and exit")
-	allFlag := flag.Bool("a", false, "Display all targets including special built-in targets")
-	flag.Parse()
+	var theme string
 
-	if *helpFlag {
+	pflag.StringVarP(&filePath, "file-name", "f", "", "Parse given file as Makefile")
+	help := pflag.BoolP("help", "h", false, "Print this message and exit")
+	all := pflag.BoolP("all", "a", false, "Display all targets including special built-in targets")
+	list := pflag.Bool("list-themes", false, "List built-in syntax highlighting themes")
+	pflag.StringVar(&theme, "theme", "vim", "Use a built-in syntax highlighting theme")
+	pflag.Parse()
+
+	if *help {
 		// Print help message
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		flag.PrintDefaults()
-		os.Exit(1)
+		pflag.PrintDefaults()
+		os.Exit(0)
+	} else if *list {
+		fmt.Println("Built-in themes:")
+		for theme := range styles.Registry {
+			fmt.Println("\t" + theme)
+		}
+		os.Exit(0)
 	} else if filePath == "" {
 		// Attempt to find makefile in current directory
 		defaultMakefileNames := []string{"GNUmakefile", "makefile", "Makefile"}
@@ -57,16 +69,22 @@ func main() {
 			}
 		}
 		if !foundFile {
-			log.Fatal("no Makefile found")
-			os.Exit(1)
+			log.Fatalln("No Makefile found.")
+		}
+	}
+
+	if theme != "" {
+		// Ensure given theme exists in registry.
+		if _, ok := styles.Registry[theme]; !ok {
+			log.Fatalln("\"" + theme + "\" is not a built-in theme.")
 		}
 	}
 
 	content := NewParsedContent(filePath, getFileContent(filePath))
-	if *allFlag {
+	if *all {
 		content.SetIncludeSpecialTargets(true)
 	}
 	content.Parse()
 
-	Render(content)
+	Render(content, theme)
 }
