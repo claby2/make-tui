@@ -80,6 +80,8 @@ func main() {
 		}
 	}
 
+	Check(LoadConfig)
+
 	content := NewParsedContent(filePath, getFileContent(filePath))
 	if *all {
 		content.SetIncludeSpecialTargets(true)

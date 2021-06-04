@@ -8,6 +8,17 @@
 
     $ go get github.com/claby2/make-tui
 
+## Configuration
+
+An optional configuration file is located at `${HOME}/.config/make-tui/config.yml`.
+
+The following is a sample `config.yml` file:
+
+```yaml
+select_foreground: white
+select_background: black
+```
+
 ## Usage
 
     Usage of make-tui:

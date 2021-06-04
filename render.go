@@ -156,7 +156,7 @@ func getContent(content []string, highlighter *Highlighter, rules []Rule, termHe
 		}
 
 		// Highlight rule (including commands)
-		highlightedContent[lineNumber] = "[" + content[lineNumber] + "](fg:black,bg:white,mod:bold)"
+		highlightedContent[lineNumber] = "[" + content[lineNumber] + "](fg:" + Config.SelectForeground + ",bg:" + Config.SelectBackground + ",mod:bold)"
 	}
 	return strings.ReplaceAll(strings.Join(highlightedContent[firstLine:], "\n"), "\t", strings.Repeat(" ", 4))
 }
