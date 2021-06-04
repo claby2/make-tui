@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"strings"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/lexers"
@@ -45,15 +46,11 @@ func (highlighter *Highlighter) GetHighlightedContent(content []string) []string
 	currentLine := ""
 	for _, line := range content {
 		iterator, err := lexer.Tokenise(nil, line)
+		tokens := iterator.Tokens()
 		if err != nil {
 			log.Fatal(err)
 		}
-		for token := iterator(); token != chroma.EOF; token = iterator() {
-			if token.Value == "\n" {
-				highlightedContent = append(highlightedContent, currentLine)
-				currentLine = ""
-				continue
-			}
+		for _, token := range tokens {
 			entry := highlighter.style.Get(token.Type)
 			fg := "clear"
 			if entry.Colour.IsSet() {
@@ -67,10 +64,10 @@ func (highlighter *Highlighter) GetHighlightedContent(content []string) []string
 			}
 			currentLine += "[" + token.Value + "](" + style + ")"
 		}
-		if currentLine != "" {
-			highlightedContent = append(highlightedContent, currentLine)
-			currentLine = ""
-		}
+		// Remove any newline characters.
+		currentLine = strings.ReplaceAll(currentLine, "\n", "")
+		highlightedContent = append(highlightedContent, currentLine)
+		currentLine = ""
 	}
 	return highlightedContent
 }
