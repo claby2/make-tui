@@ -34,15 +34,20 @@ func getFileContent(filePath string) []string {
 	return fileContent
 }
 
+func ensureThemeExists(theme string) {
+	// Ensure given theme exists in registry.
+	if _, ok := styles.Registry[theme]; !ok {
+		log.Fatalln("\"" + theme + "\" is not a built-in theme.")
+	}
+}
+
 func main() {
 	var filePath string
-	var theme string
 
 	pflag.StringVarP(&filePath, "file-name", "f", "", "Parse given file as Makefile")
 	help := pflag.BoolP("help", "h", false, "Print this message and exit")
 	all := pflag.BoolP("all", "a", false, "Display all targets including special built-in targets")
 	list := pflag.Bool("list-themes", false, "List built-in syntax highlighting themes")
-	pflag.StringVar(&theme, "theme", "vim", "Use a built-in syntax highlighting theme")
 	pflag.Parse()
 
 	if *help {
@@ -73,14 +78,8 @@ func main() {
 		}
 	}
 
-	if theme != "" {
-		// Ensure given theme exists in registry.
-		if _, ok := styles.Registry[theme]; !ok {
-			log.Fatalln("\"" + theme + "\" is not a built-in theme.")
-		}
-	}
-
 	Check(LoadConfig)
+	ensureThemeExists(Config.Theme)
 
 	content := NewParsedContent(filePath, getFileContent(filePath))
 	if *all {
@@ -88,5 +87,5 @@ func main() {
 	}
 	content.Parse()
 
-	Render(content, theme)
+	Render(content, Config.Theme)
 }

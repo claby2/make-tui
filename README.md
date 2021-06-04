@@ -17,12 +17,13 @@ The following is a sample `config.yml` file:
 ```yaml
 select_foreground: white
 select_background: black
+theme: vim
 ```
 
 ## Usage
 
-    Usage of make-tui:
-      -a	Display all targets including special built-in targets
-      -f string
-            Parse given file as Makefile
-      -h	Print this message and exit
+    Usage of build/make-tui:
+      -a, --all                Display all targets including special built-in targets
+      -f, --file-name string   Parse given file as Makefile
+      -h, --help               Print this message and exit
+          --list-themes        List built-in syntax highlighting themes

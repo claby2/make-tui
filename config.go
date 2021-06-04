@@ -9,6 +9,7 @@ import (
 type config struct {
 	SelectForeground string `mapstructure:"select_foreground"`
 	SelectBackground string `mapstructure:"select_background"`
+	Theme            string `mapstructure:"theme"`
 }
 
 var Config config
@@ -34,4 +35,5 @@ func LoadConfig() (err error) {
 func setDefaults() {
 	viper.SetDefault("select_foreground", "white")
 	viper.SetDefault("select_background", "black")
+	viper.SetDefault("theme", "vim")
 }
