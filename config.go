@@ -12,8 +12,10 @@ type config struct {
 	Theme            string `mapstructure:"theme"`
 }
 
+// Config is a global struct holding the configuration
 var Config config
 
+// LoadConfig finds and unmarshals configuration
 func LoadConfig() (err error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
@@ -25,7 +27,7 @@ func LoadConfig() (err error) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			err = nil
 		} else {
-			panic(fmt.Errorf("Fatal error config file: %s \n", err))
+			panic(fmt.Errorf("Fatal error config file: %s", err))
 		}
 	}
 	viper.Unmarshal(&Config)

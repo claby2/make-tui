@@ -20,6 +20,8 @@ func Render(content *ParsedContent, theme string) {
 	termWidth, termHeight := ui.TerminalDimensions()
 
 	target := NewTarget(0, len(content.Rules), content.Rules)
+	target.SelectedRowStyle.Fg = ui.StyleParserColorMap[Config.SelectForeground]
+	target.SelectedRowStyle.Bg = ui.StyleParserColorMap[Config.SelectBackground]
 	target.Rows = getTargets(content.Rules)
 
 	highlighter := NewHighlighter(theme)
