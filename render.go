@@ -44,11 +44,31 @@ func Render(content *ParsedContent, theme string) {
 		ui.NewCol(0.8, contentWidget),
 	)
 
+	helpWidget := widgets.NewParagraph()
+	helpWidget.SetRect(0, 0, termWidth, termHeight)
+	helpWidget.Title = "Help (press <Escape> to go back)"
+	helpWidget.Text =
+		"Target navigation:\n" +
+			"  - j and <Down>: select below\n" +
+			"  - k and <Up>: select above\n" +
+			"  - gg: jump to top\n" +
+			"  - G: jump to bottom\n" +
+			"  - <C-d>: half page down\n" +
+			"  - <C-u>: half page up\n" +
+			"  - <C-f>: full page down\n" +
+			"  - <C-b>: full page up\n" +
+			"\n" +
+			"Actions:\n" +
+			"  - q: quit\n" +
+			"  - <Enter>: run selected target\n" +
+			"  - /: search for target\n"
+
 	ui.Render(grid)
 
 	uiEvents := ui.PollEvents()
 	previousKey := ""
 	quit := false
+	help := false
 	run := false
 	for !quit && !run {
 		e := <-uiEvents
@@ -99,6 +119,12 @@ func Render(content *ParsedContent, theme string) {
 				target.Search.SetActive(true)
 			case "<Enter>":
 				run = true
+			case "?":
+				ui.Clear()
+				help = !help
+			case "<Escape>":
+				ui.Clear()
+				help = false
 			}
 		}
 		if previousKey == e.ID {
@@ -114,10 +140,14 @@ func Render(content *ParsedContent, theme string) {
 			termWidth, termHeight = ui.TerminalDimensions()
 			ui.Clear()
 		}
-		target.Index = target.SelectedRow
-		dependencyWidget.Text = getDependency(content.Rules, target.Index)
-		contentWidget.Text = getContent(content.Content, highlighter, content.Rules, termHeight, target.Index)
-		ui.Render(grid)
+		if help {
+			ui.Render(helpWidget)
+		} else {
+			target.Index = target.SelectedRow
+			dependencyWidget.Text = getDependency(content.Rules, target.Index)
+			contentWidget.Text = getContent(content.Content, highlighter, content.Rules, termHeight, target.Index)
+			ui.Render(grid)
+		}
 	}
 	ui.Close()
 
